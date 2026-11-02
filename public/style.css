@@ -1,0 +1,180 @@
+/* ── Old-school IRC client look ────────────────────────────────────────
+   Win9x/2000 chrome: beveled grey panels, navy gradient title, monospace,
+   white channel buffer with colour-coded nicks. (FOSS-Feeds) */
+
+:root {
+  /* classic 16-colour IRC palette (indices 0–15) */
+  --c0:#ffffff; --c1:#000000; --c2:#00007f; --c3:#009300; --c4:#ff0000;
+  --c5:#7f0000; --c6:#9c009c; --c7:#fc7f00; --c8:#ffff00; --c9:#00fc00;
+  --c10:#009393; --c11:#00ffff; --c12:#0000fc; --c13:#ff00ff; --c14:#7f7f7f;
+  --c15:#d2d2d2;
+  --face:#c0c0c0;       /* classic button-face grey */
+  --face-dk:#808080;
+  --face-lt:#ffffff;
+  --titlebar1:#000080;  /* classic Win9x/2000 active title gradient */
+  --titlebar2:#1084d0;
+  --mono:"Fixedsys","Lucida Console","Consolas","Courier New",monospace;
+}
+
+* { box-sizing:border-box; }
+
+html,body {
+  margin:0; height:100%;
+  background:#808080;           /* Windows AppWorkspace grey desktop */
+  font-family:var(--mono);
+  font-size:13px; line-height:15px;
+  color:#000;
+  overflow:hidden;
+}
+
+/* ── Window frame ── */
+.irc-window {
+  position:absolute; inset:14px;
+  display:flex; flex-direction:column;
+  background:var(--face);
+  border:2px solid;
+  border-color:var(--face-lt) var(--face-dk) var(--face-dk) var(--face-lt);
+  box-shadow:2px 2px 0 rgba(0,0,0,.4), 6px 6px 16px rgba(0,0,0,.35);
+}
+
+/* ── Title bar ── */
+.titlebar {
+  height:22px; flex:0 0 auto;
+  display:flex; align-items:center; gap:6px;
+  padding:0 3px 0 5px;
+  color:#fff; font-weight:bold; font-size:12px;
+  background:linear-gradient(90deg,var(--titlebar1),var(--titlebar2));
+  letter-spacing:.2px;
+}
+.titlebar .ico { font-size:13px; }
+.titlebar .title { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-shadow:1px 1px 0 rgba(0,0,0,.4); }
+.caption-btns { display:flex; gap:2px; }
+.caption-btns button {
+  width:18px; height:16px; padding:0; line-height:14px; font-size:10px;
+  background:var(--face); color:#000; cursor:default;
+  border:1px solid; border-color:var(--face-lt) var(--face-dk) var(--face-dk) var(--face-lt);
+}
+.caption-btns .x { font-weight:bold; }
+
+/* ── Menu bar ── */
+.menubar {
+  flex:0 0 auto; display:flex; gap:2px; padding:2px 4px;
+  background:var(--face); font-size:12px;
+}
+.menubar span { padding:1px 7px; }
+.menubar span:hover { background:var(--titlebar1); color:#fff; }
+
+/* ── Toolbar ── */
+.toolbar {
+  flex:0 0 auto; display:flex; align-items:center; gap:3px;
+  padding:3px 5px; background:var(--face);
+  border-top:1px solid var(--face-lt); border-bottom:1px solid var(--face-dk);
+}
+.toolbar button {
+  width:24px; height:22px; font-size:13px; background:var(--face); cursor:pointer;
+  border:1px solid; border-color:var(--face-lt) var(--face-dk) var(--face-dk) var(--face-lt);
+}
+.toolbar button:active { border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk); }
+.tsep { width:1px; height:18px; margin:0 3px;
+  border-left:1px solid var(--face-dk); border-right:1px solid var(--face-lt); }
+.server-label { margin-left:6px; font-size:12px; color:#202020; }
+#lag { color:var(--c2); }
+
+/* ── Topic bar ── */
+.topicbar {
+  flex:0 0 auto; margin:3px 4px 0; padding:3px 6px;
+  background:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  border:1px solid; border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk);
+}
+#chanName { color:var(--c2); }
+
+/* ── Body ── */
+.body { flex:1 1 auto; display:flex; gap:0; margin:3px 4px; min-height:0; }
+
+.messages {
+  flex:1 1 auto; overflow-y:scroll; overflow-x:hidden;
+  background:#fff; padding:2px 6px;
+  border:1px solid; border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk);
+  white-space:pre-wrap; word-break:break-word;
+}
+
+/* classic chunky scrollbar */
+.messages::-webkit-scrollbar,
+.nicklist ul::-webkit-scrollbar { width:16px; }
+.messages::-webkit-scrollbar-track,
+.nicklist ul::-webkit-scrollbar-track {
+  background:var(--face);
+  background-image:repeating-conic-gradient(var(--face) 0 25%, #b0b0b0 0 50%);
+  background-size:2px 2px;
+}
+.messages::-webkit-scrollbar-thumb,
+.nicklist ul::-webkit-scrollbar-thumb {
+  background:var(--face);
+  border:1px solid; border-color:var(--face-lt) var(--face-dk) var(--face-dk) var(--face-lt);
+}
+
+/* message lines */
+.line { padding:0; }
+.line .ts { color:var(--c14); }
+.line .nick { font-weight:bold; cursor:pointer; }
+.line .arrow { color:var(--c14); }
+.line a { text-decoration:none; }
+.line a:hover { text-decoration:underline; }
+.line.evt { color:var(--c3); }              /* joins/parts: green */
+.line.evt .ts { color:var(--c14); }
+.line.srv { color:var(--c2); }              /* server notices: navy */
+.line.sev-crit .title { color:var(--c4); font-weight:bold; }   /* red */
+.line.sev-warn .title { color:var(--c5); }                     /* maroon */
+.line .cat { color:var(--c14); }
+.line .url { color:var(--c2); text-decoration:underline; }
+.line.highlight { background:#fff7c0; }
+
+/* ── Nicklist ── */
+.nicklist {
+  flex:0 0 168px; display:flex; flex-direction:column; margin-left:3px;
+  background:#fff;
+  border:1px solid; border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk);
+}
+.nick-count {
+  flex:0 0 auto; padding:2px 5px; font-size:11px; color:#000;
+  background:var(--face); border-bottom:1px solid var(--face-dk);
+}
+.nicklist ul { flex:1 1 auto; list-style:none; margin:0; padding:1px 0;
+  overflow-y:auto; overflow-x:hidden; }
+.nicklist li { padding:1px 5px; white-space:nowrap; cursor:pointer; font-weight:bold; }
+.nicklist li:hover { background:var(--titlebar1); color:#fff !important; }
+.nicklist li .op { color:var(--c3); font-weight:bold; }
+.nicklist li.muted { opacity:.45; font-weight:normal; }
+
+/* ── Input row ── */
+.inputrow { flex:0 0 auto; display:flex; align-items:center; gap:5px;
+  margin:0 4px 3px; }
+.input-nick { color:var(--c2); font-weight:bold; padding-left:2px; }
+#input {
+  flex:1 1 auto; font-family:var(--mono); font-size:13px; padding:3px 5px;
+  background:#fff; border:1px solid;
+  border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk);
+  outline:none;
+}
+
+/* ── Switchbar (channel tabs) ── */
+.switchbar { flex:0 0 auto; display:flex; gap:3px; padding:3px 4px; background:var(--face);
+  border-top:1px solid var(--face-lt); }
+.switchbar button {
+  font-family:var(--mono); font-size:12px; padding:2px 9px; cursor:pointer;
+  background:var(--face); color:#000;
+  border:1px solid; border-color:var(--face-lt) var(--face-dk) var(--face-dk) var(--face-lt);
+}
+.switchbar button.active { border-color:var(--face-dk) var(--face-lt) var(--face-lt) var(--face-dk);
+  background:#dcdcdc; font-weight:bold; }
+.switchbar button.activity { color:var(--c4); }      /* red = unread */
+.switchbar button.act-msg { color:var(--c2); }       /* blue = new lines */
+
+/* ── Status bar ── */
+.statusbar {
+  flex:0 0 auto; display:flex; justify-content:space-between;
+  padding:2px 6px; font-size:11px; background:var(--face);
+  border-top:1px solid var(--face-dk); color:#202020;
+}
+#sbLeft { color:var(--c3); }

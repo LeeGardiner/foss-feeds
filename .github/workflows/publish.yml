@@ -1,0 +1,59 @@
+name: Publish
+
+# Builds the static site (public/ + a freshly fetched api/feeds.json) and
+# deploys it to GitHub Pages. Open pages pick up the new JSON on their next
+# 30-second poll; no reload needed.
+#
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# No secrets needed: the deploy uses the workflow's own short-lived token.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # GitHub may start scheduled runs late under load
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Never let two deploys race; a queued run waits rather than being dropped.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci --omit=dev --no-audit --no-fund
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build static site
+        env:
+          OUT_DIR: dist
+          PREV_URL: ${{ steps.pages.outputs.base_url }}/api/feeds.json
+        run: node scripts/build-static.js
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,19 @@
+{
+  "name": "foss-feeds",
+  "version": "1.0.0",
+  "description": "A cybersecurity RSS aggregator with an old-school IRC channel UI.",
+  "license": "MIT",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build:static": "node scripts/build-static.js"
+  },
+  "dependencies": {
+    "@seald-io/nedb": "^4.0.4",
+    "express": "^4.19.2",
+    "rss-parser": "^3.13.0"
+  }
+}

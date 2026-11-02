@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Static hosts like GitHub Pages can't send headers, so the policy rides in the page.
+     server.js sends the same policy (plus frame-ancestors) as a real header. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>#cybersec — FOSS-Feeds</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>📡</text></svg>">
+</head>
+<body>
+  <div class="irc-window">
+
+    <!-- Title bar -->
+    <div class="titlebar">
+      <span class="ico">📡</span>
+      <span class="title">#cybersec [+ntr] — FOSS-Feeds : aggregated threat intel</span>
+      <span class="caption-btns">
+        <button title="Minimize">_</button>
+        <button title="Maximize">▢</button>
+        <button class="x" title="Close">✕</button>
+      </span>
+    </div>
+
+    <!-- Menu bar -->
+    <div class="menubar">
+      <span>File</span><span>View</span><span>Favourites</span><span>Tools</span>
+      <span>Commands</span><span>Window</span><span>Help</span>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button data-cmd="connect" title="Connect">🔌</button>
+      <button data-cmd="channels" title="Channels">📑</button>
+      <span class="tsep"></span>
+      <button data-cmd="reload" title="Refresh now">🔄</button>
+      <button data-cmd="clear" title="Clear window">🧹</button>
+      <span class="tsep"></span>
+      <span class="server-label">irc.foss-feeds (6697) ·
+        <span id="lag">lag 0.00s</span></span>
+    </div>
+
+    <!-- Topic bar -->
+    <div class="topicbar" id="topicbar" title="Channel topic">
+      <b id="chanName">#cybersec</b>: <span id="topicText">connecting…</span>
+    </div>
+
+    <!-- Body: messages + nicklist -->
+    <div class="body">
+      <div class="messages" id="messages"></div>
+      <div class="nicklist">
+        <div class="nick-count" id="nickCount">0 ops, 0 total</div>
+        <ul id="nicklist"></ul>
+      </div>
+    </div>
+
+    <!-- Input row -->
+    <div class="inputrow">
+      <span class="input-nick">[<span id="myNick">you</span>]</span>
+      <input id="input" autocomplete="off" spellcheck="false"
+             placeholder="type a message or /help …">
+    </div>
+
+    <!-- Switchbar (channel tabs) -->
+    <div class="switchbar" id="switchbar"></div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <span id="sbLeft">●&nbsp;connected to irc.foss-feeds</span>
+      <span id="sbRight">0 items · --:--:--</span>
+    </div>
+
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

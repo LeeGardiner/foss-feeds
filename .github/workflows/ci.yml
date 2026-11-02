@@ -1,0 +1,69 @@
+name: CI
+
+# Dependency-safety only: prove the app still boots, then let safe Dependabot
+# bumps merge themselves. No secrets, no deploy — purely a "did this break it?"
+# gate so the project keeps its dependencies current without manual babysitting.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # The gate: install the locked dependencies, confirm the server starts and
+  # answers /health, and that the static build produces a site. If either
+  # fails, nothing merges.
+  smoke:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm ci --no-audit --no-fund
+      - name: Server boots and /health responds
+        run: |
+          mkdir -p /tmp/fdata
+          DATA_DIR=/tmp/fdata PORT=3004 node server.js &
+          pid=$!
+          ok=0
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:3004/health >/dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          curl -s http://localhost:3004/health || true
+          kill "$pid" 2>/dev/null || true
+          if [ "$ok" != "1" ]; then echo "::error::server did not become healthy with these dependencies"; exit 1; fi
+          echo "smoke OK"
+      - name: Static build produces a site
+        run: |
+          OUT_DIR=/tmp/site node scripts/build-static.js
+          test -s /tmp/site/index.html
+          node -e "const d=require('/tmp/site/api/feeds.json'); if(!d.items.length) process.exit(1); console.log(d.items.length+' items')"
+
+  # Only after the smoke gate passes: approve + merge Dependabot patch/minor
+  # bumps. Major bumps are skipped here and left open for a human.
+  dependabot-auto-merge:
+    needs: smoke
+    if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+      - name: Approve and merge (patch + minor only)
+        if: ${{ steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor' }}
+        run: |
+          gh pr review --approve "$PR_URL"
+          gh pr merge --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

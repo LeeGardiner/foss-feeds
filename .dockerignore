@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.git
+.github
+.gitignore
+.env
+.env.*
+data
+dist
+deploy
+scripts
+docs
+README.md
+*.png
+*.jpg
