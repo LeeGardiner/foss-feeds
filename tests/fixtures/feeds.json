@@ -1,0 +1,14 @@
+{
+  "sources": ["CISA", "TheRecord", "BleepingComputer", "FullDisclosure", "Schneier"],
+  "status": [
+    { "ts": 1793620000000, "msg": "✓ CISA — 1 new item(s)" },
+    { "ts": 1793620000500, "msg": "Done — 5 new, 5 in buffer" }
+  ],
+  "items": [
+    { "source": "CISA", "title": "CVE-2026-1111 actively exploited in edge routers", "link": "https://www.cisa.gov/news-events/alerts/example", "ts": 1793619000000, "category": "cve", "severity": "crit", "firstSeen": 1793619000000 },
+    { "source": "TheRecord", "title": "Ransomware gang hits regional hospital chain", "link": "https://therecord.media/example", "ts": 1793618000000, "category": "ransomware", "severity": "info", "firstSeen": 1793618000000 },
+    { "source": "BleepingComputer", "title": "Retailer confirms breach of 2 million customers", "link": "https://www.bleepingcomputer.com/news/example/", "ts": 1793617000000, "category": "breach", "severity": "info", "firstSeen": 1793617000000 },
+    { "source": "FullDisclosure", "title": "<img src=x onerror=\"window.__xss=1\">Hostile <b>headline</b>", "link": "javascript:window.__xss=2", "ts": 1793616000000, "category": "news", "severity": "info", "firstSeen": 1793616000000 },
+    { "source": "FullDisclosure", "title": "\"><script>window.__xss=3</script>", "link": "data:text/html,<script>window.__xss=4</script>", "ts": 1793615000000, "category": "news", "severity": "info", "firstSeen": 1793615000000 }
+  ]
+}

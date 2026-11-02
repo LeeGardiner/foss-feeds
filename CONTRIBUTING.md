@@ -15,10 +15,11 @@ Node 22 or newer. The front-end lives in [`public/`](public/); edit it and re-ru
 ## Making a change
 
 1. Branch from `main` and keep the PR to one topic.
-2. Run `npm run check && npm run build` before pushing.
-3. Open a PR describing what changed and why. A screenshot helps for anything visual.
+2. Run `npm run check && npm run build && npm run test:ui` before pushing (`npx playwright install chromium` once, first).
+3. Front-end change? Add or update a test in [`tests/ui.spec.js`](tests/ui.spec.js). It runs against [`tests/fixtures/feeds.json`](tests/fixtures/feeds.json), which includes hostile entries on purpose: keep them.
+4. Open a PR describing what changed and why. A screenshot helps for anything visual.
 
-Every PR runs the CI build, gitleaks, `npm audit`, dependency review and CodeQL. All must pass, and the code owner reviews before merge.
+Every PR runs the CI build, the UI tests, gitleaks, the lockfile check, `npm audit`, dependency review and CodeQL. All must pass, and the code owner reviews before merge.
 
 ## Ground rules
 

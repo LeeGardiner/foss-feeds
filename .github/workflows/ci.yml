@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: "24"
+          node-version: "26"
       - run: npm ci --no-audit --no-fund
       - name: feeds.json is valid
         run: npm run check
@@ -48,6 +48,25 @@ jobs:
           kill "$pid" 2>/dev/null || true
           if [ "$ok" != "1" ]; then echo "::error::preview did not serve the built site"; exit 1; fi
           echo "smoke OK"
+
+  # Real-browser tests against fixture data: rendering, channels, commands,
+  # and that hostile feed content (HTML in titles, javascript:/data: links)
+  # stays inert under the page's Content-Security-Policy.
+  ui:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+      - run: npm ci --no-audit --no-fund
+      # Browser build comes from the locked @playwright/test version, so it always matches.
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
 
   # Only after the smoke gate passes: queue Dependabot patch/minor bumps for
   # auto-merge. main requires a code-owner review, so they merge themselves

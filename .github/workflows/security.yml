@@ -1,7 +1,8 @@
 name: Security
 
-# Secrets + dependency (SCA) gates. All three are required checks on main.
+# Secrets + dependency (SCA) gates, all required checks on main.
 #   secrets            gitleaks over the full git history
+#   lockfile           every package from registry.npmjs.org over https, with sha512 integrity
 #   audit              npm audit of the locked production dependency tree
 #   dependency-review  on PRs: blocks newly added dependencies with known vulns
 # The weekly run catches advisories published after code was merged.
@@ -29,6 +30,18 @@ jobs:
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" \
             ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --no-banner -v
 
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "26"
+      - name: Lockfile sources and integrity
+        run: node scripts/check-lockfile.js
+
   audit:
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +50,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: "24"
+          node-version: "26"
       - name: npm audit (production deps, high+)
         run: npm audit --omit=dev --audit-level=high
 

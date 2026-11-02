@@ -3,3 +3,6 @@ dist/
 npm-debug.log
 .env
 .env.*
+tests/.site/
+test-results/
+playwright-report/

@@ -32,7 +32,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
-          node-version: "24"
+          node-version: "26"
       - run: npm ci --omit=dev --no-audit --no-fund
       - id: pages
         uses: actions/configure-pages@v6
