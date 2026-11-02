@@ -1,127 +1,96 @@
 # 📡 FOSS-Feeds
 
-A self-hosted **cybersecurity RSS aggregator** with an unapologetically **old-school IRC channel** UI. Feed sources show up as "nicks" in the channel, headlines arrive as chat lines, and you can filter by category like joining different channels — all served from a single lean Node container with zero build step.
+A **cybersecurity RSS aggregator** with an unapologetically **old-school IRC channel** UI. Feed sources show up as "nicks" in the channel, headlines arrive as chat lines, and you filter by category by joining different channels.
+
+It runs entirely on GitHub: Actions fetches the feeds every 15 minutes and publishes a static site to GitHub Pages. No server, no database, no hosting bill. **Make your own copy in about five minutes, with your own feeds.**
+
+**Live:** <https://leegardiner.github.io/foss-feeds/>
 
 ![FOSS-Feeds screenshot](docs/screenshot.png)
 
-> It's an RSS reader in a trench coat pretending to be an IRC client. The "server", "channels", and "nicks" are all painted over a feed parser — there is no actual IRC protocol involved.
+> It's an RSS reader in a trench coat pretending to be an IRC client. The "server", "channels" and "nicks" are all painted over a feed parser; there is no actual IRC protocol involved.
 
 ## Features
 
-- **12 cybersecurity feeds** out of the box (The Hacker News, BleepingComputer, Krebs, Dark Reading, SANS ISC, CISA, The Record, Securelist, Schneier, Help Net Security, Full Disclosure, oss-security) — easily edited.
-- **IRC channel UI** — white buffer, colour-coded nicks, a nicklist of "ops", a switchbar of channels, working `/commands` (`/join`, `/query`, `/names`, `/clear`, `/refresh`, `/topic`).
-- **Auto-categorisation** — each item is tagged `cve` / `ransomware` / `breach` / `malware` / `news` and a severity (`crit` / `warn` / `info`) from its headline, so you get `#cve`, `#ransomware`, `#breaches`, `#malware` channels for free.
-- **Embedded persistence** — items and alert state are stored in [NeDB](https://github.com/seald/nedb) (file-backed, no DB server), so overnight items and unsent alerts survive restarts.
-- **Optional scheduled push alerts** via [ntfy](https://ntfy.sh) — batched crit/warn pushes inside a configurable daily window, plus a morning briefing of overnight activity. Off by default.
-- **Two ways to run it** — as a self-hosted container, or as a **serverless static site** rebuilt on a schedule by GitHub Actions and served from GitHub Pages.
+- **12 cybersecurity feeds** out of the box (The Hacker News, BleepingComputer, Krebs, Dark Reading, SANS ISC, CISA, The Record, Securelist, Schneier, Help Net Security, Full Disclosure, oss-security), configured in one file.
+- **IRC channel UI**: white buffer, colour-coded nicks, a nicklist of "ops", a switchbar of channels, and working `/commands` (`/join`, `/query`, `/names`, `/clear`, `/refresh`, `/topic`).
+- **Auto-categorisation**: each item is tagged `cve` / `ransomware` / `breach` / `malware` / `news` with a severity (`crit` / `warn` / `info`) from its headline, giving you `#cve`, `#ransomware`, `#breaches` and `#malware` channels for free.
+- **7 days of history** with no database: each build carries forward the previous build's items.
+- **Free to run**: GitHub Actions and Pages cost nothing for public repositories.
 
-## Quick start
+## Make your own
 
-```bash
-git clone <your-fork-url> foss-feeds && cd foss-feeds
-cp .env.example .env          # optional — edit for ntfy alerts
-docker compose up -d --build
+1. **Copy the repo.** Click **Use this template → Create a new repository** (recommended: you get a clean history, and scheduled workflows work straight away). Or fork it, then open your fork's **Actions** tab and enable workflows, which GitHub disables on forks.
+2. **Turn on Pages.** In your repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. **Choose your feeds.** Edit [`feeds.json`](feeds.json) (see below) and commit.
+4. **Publish.** **Actions → Publish → Run workflow** for the first build. After that it rebuilds every 15 minutes by itself.
+
+Your site appears at `https://<your-username>.github.io/<repo-name>/`.
+
+Two things to tidy in your copy: replace `@LeeGardiner` in [`.github/CODEOWNERS`](.github/CODEOWNERS) with your own username (or delete the file), and keep the repo **public**, because CodeQL code scanning is only free on public repositories (delete [`codeql.yml`](.github/workflows/codeql.yml) if you go private).
+
+## Choosing feeds
+
+[`feeds.json`](feeds.json) is a list of sources:
+
+```json
+[
+  { "source": "TheHackerNews",    "url": "https://feeds.feedburner.com/TheHackersNews" },
+  { "source": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/" }
+]
 ```
 
-Open <http://localhost:3004>. Behind a reverse proxy, point a hostname at it and set `PUBLIC_URL` so alert links resolve.
+- `source` is the nick shown in the channel: 1–32 letters, digits, `_`, `.` or `-`, unique.
+- `url` is any RSS or Atom feed, and must be `https`.
 
-The container runs as the unprivileged `node` user (uid 1000), so the bind-mounted `./data` directory must be writable by it: `sudo chown -R 1000:1000 data`.
+The build checks the file and fails with a clear message if an entry is wrong, so a typo can't silently drop a feed. Any topic works, but the channel categories are tuned for security headlines; for other topics, most items will land in `#cybersec` as `news` (the keyword rules are `categorize()` and `severity()` in [`lib/feeds.js`](lib/feeds.js)).
 
-Without Docker (Node 22+):
+## Run it locally
+
+Needs Node 22 or newer.
 
 ```bash
+git clone https://github.com/<you>/<repo>.git && cd <repo>
 npm ci
-DATA_DIR=./data npm start     # http://localhost:3004
+npm run check      # validate feeds.json
+npm run build      # fetch the feeds -> dist/
+npm run preview    # http://localhost:8080
 ```
-
-## Public static site (no server)
-
-The same UI can run with no server at all. A scheduled workflow ([`.github/workflows/publish.yml`](.github/workflows/publish.yml)) fetches the feeds every 15 minutes, writes `api/feeds.json` next to the static front-end, and deploys the lot to GitHub Pages. Open pages pick up new items on their normal 30-second poll.
-
-```bash
-npm ci
-npm run build:static          # -> dist/  (serve it with any static file server)
-```
-
-History is carried forward from the previously published `api/feeds.json` (set `PREV_URL`), so items persist for `RETENTION_DAYS` without a database. If the previous build can't be fetched, the build fails rather than deploying a site with its history wiped. The static site has no push alerts.
-
-To switch on the deploy in your fork: **Settings → Pages → Build and deployment → Source: GitHub Actions**. No secrets are needed. The site appears at `https://<you>.github.io/<repo>/`.
-
-GitHub Pages can't send custom headers, so the static site's Content-Security-Policy is a `<meta>` tag in [`public/index.html`](public/index.html).
-
-## Configuration
-
-All via environment variables (see [`.env.example`](.env.example)); everything has a sensible default.
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `PORT` | `3004` | HTTP port |
-| `REFRESH_MIN` | `5` | Feed fetch interval (minutes) |
-| `DATA_DIR` | `/data` | Where NeDB files live |
-| `RETENTION_DAYS` | `7` | Drop items this many days after first seen |
-| `PUBLIC_URL` | `http://localhost:$PORT` | Base URL used in alert links |
-| `TZ` | `Europe/London` | Timezone for the alert schedule |
-| `NTFY_URL` | _(unset)_ | ntfy topic URL — **unset disables all push alerts** |
-| `ALERT_LEVELS` | `crit,warn` | Severities that trigger a push |
-| `ALERT_WINDOW_START` / `ALERT_WINDOW_END` | `09:00` / `17:30` | Daily window alerts may send in |
-| `ALERT_EVERY_MIN` | `15` | Batched-flush cadence inside the window |
-| `SUMMARY_AT` | `09:00` | Time of the daily morning briefing |
-| `SUMMARY_LOOKBACK_H` | `16` | How far back the briefing summarises |
-
-## Editing the feeds
-
-The feed list is the `FEEDS` array in [`lib/feeds.js`](lib/feeds.js), shared by the server and the static build:
-
-```js
-const FEEDS = [
-  { source: 'TheHackerNews',    url: 'https://feeds.feedburner.com/TheHackersNews' },
-  { source: 'BleepingComputer', url: 'https://www.bleepingcomputer.com/feed/' },
-  // …add / remove as you like; `source` becomes the nick shown in-channel
-];
-```
-
-`source` is the displayed nick; any standard RSS/Atom feed works (not just security ones).
 
 ## How it works
 
-Self-hosted:
-
 ```
-RSS feeds ──poll(5m)──> server.js ──categorise/dedupe──> NeDB (/data)
-                                          │
-   browser ──poll(30s)──> /api/feeds.json ┘──> IRC UI (public/)
-                                          └──> ntfy push alerts (optional)
-```
-
-Static:
-
-```
-RSS feeds ──Actions cron(15m)──> build-static.js ──> dist/api/feeds.json ──> GitHub Pages
-                                       ▲                                          │
-                                       └──── previous api/feeds.json (history) ───┤
-                                          browser ──poll(30s)──> IRC UI (public/) ┘
+                 ┌──────── previous api/feeds.json (7-day history) ────────┐
+                 ▼                                                         │
+RSS feeds ──Actions cron (15 min)──> scripts/build-static.js ──> dist/ ──> GitHub Pages
+                                                                           │
+                                     browser ──poll (30 s)──> IRC UI ◄─────┘
 ```
 
-No database server, no frontend framework, no front-end build — Express serving JSON plus a static page, or just the static page.
+- `scripts/build-static.js` fetches every feed in `feeds.json`, de-duplicates against the previous build, drops items first seen more than `RETENTION_DAYS` (default 7) ago, and writes `dist/api/feeds.json` next to the front-end in [`public/`](public/).
+- If the previous build can't be downloaded, the build fails rather than publishing a site with its history wiped; the next scheduled run tries again.
+- The page polls `api/feeds.json` every 30 seconds, so new items appear without a reload. GitHub may start scheduled runs a few minutes late when it's busy.
+- GitHub turns off schedules in public repos with no activity for 60 days. If yours stops updating, re-enable it from the **Actions** tab.
 
-Feed links are third-party input, so only `http(s)` URLs are ever rendered as links, and both modes send a strict Content-Security-Policy.
+## Security
+
+- Feed content is third-party input: titles are HTML-escaped, and only `http(s)` links are ever rendered, so a `javascript:` link in a feed can't become clickable.
+- The page ships a strict Content-Security-Policy (as a `<meta>` tag, since GitHub Pages can't send custom headers). No external scripts, styles, fonts or trackers.
+- Every PR and push runs:
+  - **Secrets**: [gitleaks](https://github.com/gitleaks/gitleaks) over the full git history ([`security.yml`](.github/workflows/security.yml)), plus GitHub secret scanning with push protection.
+  - **Dependencies**: `npm audit` on the locked tree, GitHub dependency review on PRs, and Dependabot alerts and security updates.
+  - **Code**: [CodeQL](https://codeql.github.com/) security-extended analysis of the JavaScript and the workflows ([`codeql.yml`](.github/workflows/codeql.yml)).
 
 ## Maintenance
 
-The repo keeps its own dependencies current, safely:
+- **Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly update PRs for the npm packages and the GitHub Actions.
+- **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) validates `feeds.json`, runs a real build and serves it. Patch/minor Dependabot PRs that pass are queued for auto-merge and land as soon as the code owner approves; major bumps wait for a human.
+- `main` is protected: changes land only through pull requests with green checks and a code-owner review.
 
-- **Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly update PRs for the npm packages, the Docker base image, and the GitHub Actions themselves.
-- **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs a smoke test on every PR — it installs the locked dependencies (`package-lock.json`), boots the server, checks `/health`, and runs the static build.
-- Only if that smoke test passes are **patch/minor** Dependabot PRs queued for auto-merge; they merge as soon as the code owner approves. **Major** bumps are left open for a human. So updates that would break startup never merge, and nothing merges unreviewed.
+## Contributing
 
-Security checks run on every PR, on every push to `main` and weekly:
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- **Secrets:** [gitleaks](https://github.com/gitleaks/gitleaks) scans the full git history ([`security.yml`](.github/workflows/security.yml)), and GitHub secret scanning with push protection blocks known token formats before they land.
-- **SCA:** `npm audit` on the locked production tree, plus GitHub's dependency review blocking PRs that add a package with a known high/critical vulnerability. Dependabot alerts and security updates are on.
-- **SAST:** [CodeQL](https://codeql.github.com/) (`security-extended` queries) analyses the JavaScript and the GitHub Actions workflows ([`codeql.yml`](.github/workflows/codeql.yml)).
+## Licence
 
-`main` is protected by a ruleset: changes land only through pull requests, with a green CI and a review from the owner in [`.github/CODEOWNERS`](.github/CODEOWNERS). Forks wanting the same flow need **Settings → General → Allow auto-merge** enabled.
-
-## License
-
-[MIT](LICENSE) © 2026 Lee Gardiner. A nostalgia tribute; not affiliated with any IRC client or network.
+[MIT](LICENSE) © 2026 Lee Gardiner. A nostalgia tribute; not affiliated with any IRC client or network. Headlines and links belong to their publishers; FOSS-Feeds shows titles and links only, never article text.

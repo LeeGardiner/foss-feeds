@@ -95,7 +95,7 @@ function renderMessages() {
   if (DATA.updated) DATA.items.forEach((it) => seenLines.add(it.source + '|' + it.link));
 }
 
-// Belt and braces: the server already strips non-http(s) links.
+// Belt and braces: the build already strips non-http(s) links.
 function httpOnly(u) { return /^https?:\/\//i.test(String(u)) ? u : '#'; }
 function shortUrl(u) {
   try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + (x.pathname.length > 1 ? '…' : ''); }

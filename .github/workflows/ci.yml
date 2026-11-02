@@ -1,8 +1,8 @@
 name: CI
 
-# Dependency-safety only: prove the app still boots, then let safe Dependabot
-# bumps merge themselves. No secrets, no deploy — purely a "did this break it?"
-# gate so the project keeps its dependencies current without manual babysitting.
+# The "did this break it?" gate: validate feeds.json and prove a real build
+# produces a working site. No secrets, no deploy. Also queues safe Dependabot
+# bumps for auto-merge once the owner approves.
 
 on:
   pull_request:
@@ -14,9 +14,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  # The gate: install the locked dependencies, confirm the server starts and
-  # answers /health, and that the static build produces a site. If either
-  # fails, nothing merges.
+  # The gate: install the locked dependencies, validate feeds.json, run a real
+  # build against the live feeds, and serve the result. If any step fails,
+  # nothing merges.
   smoke:
     runs-on: ubuntu-latest
     permissions:
@@ -29,25 +29,25 @@ jobs:
         with:
           node-version: "24"
       - run: npm ci --no-audit --no-fund
-      - name: Server boots and /health responds
-        run: |
-          mkdir -p /tmp/fdata
-          DATA_DIR=/tmp/fdata PORT=3004 node server.js &
-          pid=$!
-          ok=0
-          for i in $(seq 1 20); do
-            if curl -sf http://localhost:3004/health >/dev/null; then ok=1; break; fi
-            sleep 1
-          done
-          curl -s http://localhost:3004/health || true
-          kill "$pid" 2>/dev/null || true
-          if [ "$ok" != "1" ]; then echo "::error::server did not become healthy with these dependencies"; exit 1; fi
-          echo "smoke OK"
-      - name: Static build produces a site
+      - name: feeds.json is valid
+        run: npm run check
+      - name: Build produces a site
         run: |
           OUT_DIR=/tmp/site node scripts/build-static.js
           test -s /tmp/site/index.html
           node -e "const d=require('/tmp/site/api/feeds.json'); if(!d.items.length) process.exit(1); console.log(d.items.length+' items')"
+      - name: Preview serves it
+        run: |
+          OUT_DIR=/tmp/site PORT=8080 node scripts/preview.js &
+          pid=$!
+          ok=0
+          for i in $(seq 1 10); do
+            if curl -sf http://localhost:8080/api/feeds.json >/dev/null && curl -sf http://localhost:8080/ >/dev/null; then ok=1; break; fi
+            sleep 1
+          done
+          kill "$pid" 2>/dev/null || true
+          if [ "$ok" != "1" ]; then echo "::error::preview did not serve the built site"; exit 1; fi
+          echo "smoke OK"
 
   # Only after the smoke gate passes: queue Dependabot patch/minor bumps for
   # auto-merge. main requires a code-owner review, so they merge themselves

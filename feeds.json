@@ -1,0 +1,14 @@
+[
+  { "source": "TheHackerNews",    "url": "https://feeds.feedburner.com/TheHackersNews" },
+  { "source": "BleepingComputer", "url": "https://www.bleepingcomputer.com/feed/" },
+  { "source": "KrebsOnSecurity",  "url": "https://krebsonsecurity.com/feed/" },
+  { "source": "DarkReading",      "url": "https://www.darkreading.com/rss.xml" },
+  { "source": "SANS_ISC",         "url": "https://isc.sans.edu/rssfeed_full.xml" },
+  { "source": "CISA",             "url": "https://www.cisa.gov/cybersecurity-advisories/all.xml" },
+  { "source": "TheRecord",        "url": "https://therecord.media/feed/" },
+  { "source": "Securelist",       "url": "https://securelist.com/feed/" },
+  { "source": "Schneier",         "url": "https://www.schneier.com/feed/atom/" },
+  { "source": "HelpNetSecurity",  "url": "https://www.helpnetsecurity.com/feed/" },
+  { "source": "FullDisclosure",   "url": "https://seclists.org/rss/fulldisclosure.rss" },
+  { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" }
+]

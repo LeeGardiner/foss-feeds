@@ -3,9 +3,10 @@
    (public/ + api/feeds.json). Run on a schedule by
    .github/workflows/publish.yml; no server, no database.
 
-   History: the previous run's published api/feeds.json (PREV_URL) stands in
-   for NeDB. Items keep their firstSeen time and are dropped RETENTION_DAYS
-   after it, matching the server's retention-by-discovery rule. */
+   History: the previous run's published api/feeds.json (PREV_URL) is the only
+   state. Items keep their firstSeen time and are dropped RETENTION_DAYS after
+   it — by discovery, not publish date, since some feeds carry week-old items
+   and pruning by publish date would make them churn in and out. */
 const fs = require('fs');
 const path = require('path');
 const { FEEDS, fetchFeed, loadMock, safeLink, categorize, severity } = require('../lib/feeds');
