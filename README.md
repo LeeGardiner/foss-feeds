@@ -52,9 +52,16 @@ Needs Node 22 or newer.
 ```bash
 git clone https://github.com/<you>/<repo>.git && cd <repo>
 npm ci
-npm run check      # validate feeds.json
+npm run check      # validate feeds.json and the lockfile
 npm run build      # fetch the feeds -> dist/
 npm run preview    # http://localhost:8080
+```
+
+UI tests (Playwright, real Chromium, fixture data rather than live feeds):
+
+```bash
+npx playwright install chromium   # once
+npm run test:ui
 ```
 
 ## How it works
@@ -78,7 +85,8 @@ RSS feeds ──Actions cron (15 min)──> scripts/build-static.js ──> dis
 - The page ships a strict Content-Security-Policy (as a `<meta>` tag, since GitHub Pages can't send custom headers). No external scripts, styles, fonts or trackers.
 - Every PR and push runs:
   - **Secrets**: [gitleaks](https://github.com/gitleaks/gitleaks) over the full git history ([`security.yml`](.github/workflows/security.yml)), plus GitHub secret scanning with push protection.
-  - **Dependencies**: `npm audit` on the locked tree, GitHub dependency review on PRs, and Dependabot alerts and security updates.
+  - **Dependencies**: a lockfile check (every package from `registry.npmjs.org` over https with a sha512 hash, so a PR can't quietly repoint one), `npm audit` on the locked tree, GitHub dependency review on PRs, and Dependabot alerts and security updates.
+  - **Browser**: [Playwright](https://playwright.dev/) UI tests feed the page deliberately hostile data (HTML in headlines, `javascript:` and `data:` links) and fail if anything executes, any unsafe link is rendered, or the page logs a single error, CSP violations included.
   - **Code**: [CodeQL](https://codeql.github.com/) security-extended analysis of the JavaScript and the workflows ([`codeql.yml`](.github/workflows/codeql.yml)).
 
 ## Maintenance
