@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:26-alpine
 WORKDIR /app
 
 # tzdata so TZ=Europe/London resolves (DST-aware local time for the alert schedule)
