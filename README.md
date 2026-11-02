@@ -112,9 +112,9 @@ The repo keeps its own dependencies current, safely:
 
 - **Dependabot** ([`.github/dependabot.yml`](.github/dependabot.yml)) opens weekly update PRs for the npm packages, the Docker base image, and the GitHub Actions themselves.
 - **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs a smoke test on every PR — it installs the locked dependencies (`package-lock.json`), boots the server, checks `/health`, and runs the static build.
-- Only if that smoke test passes are **patch/minor** Dependabot PRs auto-approved and merged. **Major** bumps are left open for a human. So updates that would break startup never merge.
+- Only if that smoke test passes are **patch/minor** Dependabot PRs queued for auto-merge; they merge as soon as the code owner approves. **Major** bumps are left open for a human. So updates that would break startup never merge, and nothing merges unreviewed.
 
-One-time repo setting required for the auto-merge step: **Settings → Actions → General → Workflow permissions →** "Read and write permissions" + "Allow GitHub Actions to create and approve pull requests".
+`main` is protected by a ruleset: changes land only through pull requests, with a green CI and a review from the owner in [`.github/CODEOWNERS`](.github/CODEOWNERS). Forks wanting the same flow need **Settings → General → Allow auto-merge** enabled.
 
 ## License
 

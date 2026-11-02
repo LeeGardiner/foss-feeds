@@ -49,8 +49,9 @@ jobs:
           test -s /tmp/site/index.html
           node -e "const d=require('/tmp/site/api/feeds.json'); if(!d.items.length) process.exit(1); console.log(d.items.length+' items')"
 
-  # Only after the smoke gate passes: approve + merge Dependabot patch/minor
-  # bumps. Major bumps are skipped here and left open for a human.
+  # Only after the smoke gate passes: queue Dependabot patch/minor bumps for
+  # auto-merge. main requires a code-owner review, so they merge themselves
+  # the moment the owner approves. Major bumps are left open for a human.
   dependabot-auto-merge:
     needs: smoke
     if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
@@ -59,11 +60,9 @@ jobs:
       - name: Fetch Dependabot metadata
         id: meta
         uses: dependabot/fetch-metadata@v2
-      - name: Approve and merge (patch + minor only)
+      - name: Queue for auto-merge (patch + minor only)
         if: ${{ steps.meta.outputs.update-type == 'version-update:semver-patch' || steps.meta.outputs.update-type == 'version-update:semver-minor' }}
-        run: |
-          gh pr review --approve "$PR_URL"
-          gh pr merge --squash "$PR_URL"
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
