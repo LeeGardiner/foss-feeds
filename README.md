@@ -114,6 +114,12 @@ The repo keeps its own dependencies current, safely:
 - **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs a smoke test on every PR — it installs the locked dependencies (`package-lock.json`), boots the server, checks `/health`, and runs the static build.
 - Only if that smoke test passes are **patch/minor** Dependabot PRs queued for auto-merge; they merge as soon as the code owner approves. **Major** bumps are left open for a human. So updates that would break startup never merge, and nothing merges unreviewed.
 
+Security checks run on every PR, on every push to `main` and weekly:
+
+- **Secrets:** [gitleaks](https://github.com/gitleaks/gitleaks) scans the full git history ([`security.yml`](.github/workflows/security.yml)), and GitHub secret scanning with push protection blocks known token formats before they land.
+- **SCA:** `npm audit` on the locked production tree, plus GitHub's dependency review blocking PRs that add a package with a known high/critical vulnerability. Dependabot alerts and security updates are on.
+- **SAST:** [CodeQL](https://codeql.github.com/) (`security-extended` queries) analyses the JavaScript and the GitHub Actions workflows ([`codeql.yml`](.github/workflows/codeql.yml)).
+
 `main` is protected by a ruleset: changes land only through pull requests, with a green CI and a review from the owner in [`.github/CODEOWNERS`](.github/CODEOWNERS). Forks wanting the same flow need **Settings → General → Allow auto-merge** enabled.
 
 ## License
