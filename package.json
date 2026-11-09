@@ -17,6 +17,6 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1"
+    "@playwright/test": "1.65.0"
   }
 }
