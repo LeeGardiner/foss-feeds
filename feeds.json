@@ -10,5 +10,6 @@
   { "source": "Schneier",         "url": "https://www.schneier.com/feed/atom/" },
   { "source": "HelpNetSecurity",  "url": "https://www.helpnetsecurity.com/feed/" },
   { "source": "FullDisclosure",   "url": "https://seclists.org/rss/fulldisclosure.rss" },
-  { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" }
+  { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" },
+  { "source": "JohoNoTodaiJP",    "url": "https://joho-todai.com/tag/security/rss/" }
 ]
