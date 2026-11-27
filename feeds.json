@@ -10,5 +10,8 @@
   { "source": "Schneier",         "url": "https://www.schneier.com/feed/atom/" },
   { "source": "HelpNetSecurity",  "url": "https://www.helpnetsecurity.com/feed/" },
   { "source": "FullDisclosure",   "url": "https://seclists.org/rss/fulldisclosure.rss" },
-  { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" }
+  { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" },
+  { "source": "WizResearch",      "url": "https://www.wiz.io/blog/tag/research/rss.xml" },
+  { "source": "Mandiant",         "url": "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/" },
+  { "source": "Splunk",           "url": "https://advisory.splunk.com/feed.xml" }
 ]
