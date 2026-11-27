@@ -12,5 +12,6 @@
   { "source": "FullDisclosure",   "url": "https://seclists.org/rss/fulldisclosure.rss" },
   { "source": "oss-security",     "url": "https://seclists.org/rss/oss-sec.rss" },
   { "source": "WizResearch",      "url": "https://www.wiz.io/blog/tag/research/rss.xml" },
-  { "source": "Mandiant",         "url": "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/" }
+  { "source": "Mandiant",         "url": "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/" },
+  { "source": "Splunk",           "url": "https://advisory.splunk.com/feed.xml" }
 ]
